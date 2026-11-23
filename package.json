@@ -1,0 +1,41 @@
+{
+  "name": "ecg-acls-master-lab",
+  "version": "1.0.0",
+  "description": "Simulador de ECG, ritmos cardíacos y protocolos ACLS/ERC",
+  "main": "main.js",
+  "author": "ECG ACLS Master Lab",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win --publish never"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/core": "^6.2.1",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.ecgacls.masterlab",
+    "productName": "ECG ACLS Master Lab",
+    "directories": { "buildResources": "build", "output": "dist" },
+    "files": ["main.js", "www/**/*", "build/icon.png", "package.json"],
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ECG ACLS Master Lab",
+      "artifactName": "ECG-ACLS-Master-Lab-Instalador-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "ECG-ACLS-Master-Lab-Portatil-${version}.${ext}"
+    }
+  }
+}

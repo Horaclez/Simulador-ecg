@@ -1,0 +1,6 @@
+{
+  "appId": "com.ecgacls.masterlab",
+  "appName": "ECG ACLS Master Lab",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}
