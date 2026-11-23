@@ -1,1 +1,101 @@
+name: Construir APK y instalador de Windows
 
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    name: APK de Android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Preparar el SDK de Android
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
+
+      - name: Instalar dependencias
+        run: npm install --ignore-scripts
+
+      - name: Crear el proyecto Android
+        run: npx cap add android
+
+      - name: Aplicar el ícono de la app
+        run: cp -r resources/android/res/. android/app/src/main/res/
+
+      - name: Copiar el simulador al proyecto
+        run: npx cap sync android
+
+      - name: Compilar el APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Renombrar el APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk ECG-ACLS-Master-Lab.apk
+
+      - name: Guardar el APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: APK-Android
+          path: ECG-ACLS-Master-Lab.apk
+
+  windows:
+    name: Instalador de Windows
+    runs-on: windows-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Crear el instalador
+        run: npx electron-builder --win --publish never
+
+      - name: Guardar los ejecutables
+        uses: actions/upload-artifact@v4
+        with:
+          name: Instalador-Windows
+          path: dist/*.exe
+
+  publicar:
+    name: Publicar versión
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [android, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar los archivos generados
+        uses: actions/download-artifact@v4
+        with:
+          path: salidas
+
+      - name: Crear la versión en GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          files: salidas/**/*
